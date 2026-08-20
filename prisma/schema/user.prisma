@@ -1,0 +1,46 @@
+enum Role {
+  USER
+  ADMIN
+  CLIENT
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String?   @unique
+  phone        String?   @unique
+  passwordHash String?   @map("password_hash")
+  supabaseId   String?   @unique @map("supabase_id")
+  provider     String    @default("local") // "local", "google", "apple", "phone", "email_otp"
+  providerId   String?   @map("provider_id")
+  role         Role      @default(USER)
+  isActive     Boolean   @default(true) @map("is_active")
+
+  // Relations
+  profile       Profile?
+  refreshTokens RefreshToken[]
+  auditLogs     AuthAuditLog[]
+
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Profile {
+  id           String    @id @default(uuid())
+  userId       String    @unique @map("user_id")
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  username     String?   @unique
+  firstName    String?   @map("first_name")
+  lastName     String?   @map("last_name")
+  dob          DateTime?
+  avatarUrl    String?   @map("avatar_url")
+  thumbnailUrl String?   @map("thumbnail_url")
+  bio          String?
+
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  @@map("profiles")
+}

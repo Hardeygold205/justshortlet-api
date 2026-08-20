@@ -1,12 +1,12 @@
-import jwt from "jsonwebtoken";
-import ENV from "../config/env.js";
-import { STATUS_CODES, STATUS_MESSAGES } from "../constants/statusCode.js";
+import { verifyAccessToken } from "../utils/jwt.js";
+import { isTokenBlacklisted } from "../services/redis.service.js";
+import { STATUS_CODES } from "../constants/statusCode.js";
 
-export const authenticate = (req, res, next) => {
+export const authenticate = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
-    if (!authHeader) {
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res
         .status(STATUS_CODES.FORBIDDEN)
         .json({ message: "No token provided" });
@@ -14,8 +14,20 @@ export const authenticate = (req, res, next) => {
 
     const token = authHeader.split(" ")[1];
 
-    const decoded = jwt.verify(token, ENV.JWT_SECRET);
+    if (!token) {
+      return res
+        .status(STATUS_CODES.FORBIDDEN)
+        .json({ message: "Malformed token" });
+    }
 
+    const blacklisted = await isTokenBlacklisted(token);
+    if (blacklisted) {
+      return res
+        .status(STATUS_CODES.UNAUTHORIZED)
+        .json({ message: "Token has been revoked" });
+    }
+
+    const decoded = verifyAccessToken(token);
     req.user = decoded;
     next();
   } catch (err) {

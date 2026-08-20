@@ -1,3 +1,5 @@
+import { STATUS_CODES } from "../constants/statusCode.js";
+
 const validate = (schema) => (req, res, next) => {
   try {
     const result = schema.safeParse({
@@ -7,7 +9,7 @@ const validate = (schema) => (req, res, next) => {
     });
 
     if (!result.success) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: "Validation failed",
         errors: result.error.flatten(),

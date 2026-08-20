@@ -1,3 +1,4 @@
+import "./config/zod-extend.js";
 import app from "./app.js";
 import ENV from "./config/env.js";
 
