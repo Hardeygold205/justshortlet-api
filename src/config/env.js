@@ -47,11 +47,6 @@ const ENV = {
   TERMII_API_KEY: process.env.TERMII_API_KEY,
   TERMII_SENDER_ID: process.env.TERMII_SENDER_ID,
   TERMII_EMAIL_CONFIG_ID: process.env.TERMII_EMAIL_CONFIG_ID,
-
-  // Supabase
-  SUPABASE_URL: process.env.SUPABASE_URL,
-  SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
-  SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
 };
 
 const required = [
@@ -63,8 +58,6 @@ const required = [
   "STORAGE_PATH",
   "CLOUDINARY_API_KEY",
   "CLOUDINARY_API_SECRET",
-  "SUPABASE_SERVICE_ROLE_KEY",
-  "SUPABASE_URL",
 ];
 
 for (const key of required) {
