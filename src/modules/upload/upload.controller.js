@@ -14,7 +14,7 @@ export const uploadSingle = asyncHandler(async (req, res) => {
   }
 
   const folder = req.body.folder || "general";
-  const result = await uploadSingleFile(req.file, folder);
+  const result = await uploadSingleFile(req.file, folder, req.user.id);
 
   return successResponse(
     res,
@@ -30,7 +30,7 @@ export const uploadMultiple = asyncHandler(async (req, res) => {
   }
 
   const folder = req.body.folder || "general";
-  const results = await uploadMultipleFiles(req.files, folder);
+  const results = await uploadMultipleFiles(req.files, folder, req.user.id);
 
   return successResponse(
     res,
@@ -44,7 +44,7 @@ export const uploadAny = asyncHandler(async (req, res) => {
   const folder = req.body.folder || "general";
 
   if (req.file) {
-    const result = await uploadSingleFile(req.file, folder);
+    const result = await uploadSingleFile(req.file, folder, req.user.id);
     return successResponse(
       res,
       STATUS_CODES.CREATED,
@@ -54,7 +54,7 @@ export const uploadAny = asyncHandler(async (req, res) => {
   }
 
   if (req.files && req.files.length > 0) {
-    const results = await uploadMultipleFiles(req.files, folder);
+    const results = await uploadMultipleFiles(req.files, folder, req.user.id);
     return successResponse(
       res,
       STATUS_CODES.CREATED,
@@ -67,8 +67,8 @@ export const uploadAny = asyncHandler(async (req, res) => {
 });
 
 export const removeFile = asyncHandler(async (req, res) => {
-  const { identifier, resourceType } = req.body;
-  await deleteUploadedFile(identifier, resourceType);
+  const { identifier } = req.body;
+  await deleteUploadedFile(identifier, req.user.id);
 
   return successResponse(res, STATUS_CODES.OK, "File deleted successfully");
 });

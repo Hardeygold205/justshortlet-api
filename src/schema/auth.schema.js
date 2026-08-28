@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+const SELF_REGISTERABLE_ROLES = ["GUEST", "HOST"];
+
 export const registerSchema = z
   .object({
     body: z.object({
@@ -32,6 +34,11 @@ export const registerSchema = z
           "Username can only contain letters, numbers and underscores",
         )
         .openapi({ example: "hardeygold" }),
+      role: z
+        .enum(SELF_REGISTERABLE_ROLES)
+        .optional()
+        .default("GUEST")
+        .openapi({ example: "GUEST" }),
     }),
   })
   .openapi("RegisterInput");
@@ -58,10 +65,57 @@ export const refreshTokenSchema = z
   })
   .openapi("RefreshTokenInput");
 
-export const supabaseExchangeSchema = z
-  .object({
-    body: z.object({
-      supabaseAccessToken: z.string().min(1, "Supabase token is required"),
-    }),
-  })
-  .openapi("SupabaseExchangeInput");
+export const forgotPasswordSchema = z.object({
+  body: z.object({
+    email: z
+      .email("Valid email is required")
+      .openapi({ example: "user@example.com" }),
+  }),
+});
+
+export const resetPasswordSchema = z.object({
+  body: z.object({
+    email: z
+      .email("Valid email is required")
+      .openapi({ example: "user@example.com" }),
+    code: z.string().length(6),
+    newPassword: z.string().min(8),
+  }),
+});
+
+export const socialLoginSchema = z.object({
+  body: z.object({
+    provider: z.enum(["google", "apple"]),
+    token: z.string().min(1),
+  }),
+});
+
+export const phoneOtpRequestSchema = z.object({
+  body: z.object({
+    phone: z.string().min(10).openapi({ example: "08123456789" }),
+  }),
+});
+
+export const phoneOtpVerifySchema = z.object({
+  body: z.object({
+    phone: z.string().min(10).openapi({ example: "08123456789" }),
+    code: z.string().length(6).openapi({ example: "123456" }),
+  }),
+});
+
+export const emailOtpRequestSchema = z.object({
+  body: z.object({
+    email: z
+      .email("email is required")
+      .openapi({ example: "user@example.com" }),
+  }),
+});
+
+export const emailOtpVerifySchema = z.object({
+  body: z.object({
+    email: z
+      .email("email is required")
+      .openapi({ example: "user@example.com" }),
+    code: z.string().length(6).openapi({ example: "123456" }),
+  }),
+});

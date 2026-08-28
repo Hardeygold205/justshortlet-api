@@ -1,0 +1,147 @@
+enum PropertyStatus {
+  DRAFT
+  PENDING_REVIEW
+  PUBLISHED
+  REJECTED
+  SUSPENDED
+  ARCHIVED
+}
+
+enum PropertyType {
+  APARTMENT
+  HOUSE
+  DUPLEX
+  STUDIO
+  PENTHOUSE
+  VILLA
+  OTHER
+}
+
+enum CancellationPolicyType {
+  FLEXIBLE
+  MODERATE
+  STRICT
+  NON_REFUNDABLE
+}
+
+model Property {
+  id          String         @id @default(uuid())
+  hostId      String         @map("host_id")
+
+  title       String
+  description String?
+  slug        String         @unique
+
+  type        PropertyType
+  status      PropertyStatus @default(DRAFT)
+
+  address     String?
+  city        String?
+  state       String?
+  country     String?  @default("Nigeria")
+  latitude    Decimal? @db.Decimal(9, 6)
+  longitude   Decimal? @db.Decimal(9, 6)
+
+  bedrooms    Int      @default(0)
+  bathrooms   Int      @default(0)
+  maxGuests   Int      @map("max_guests")
+  beds        Int      @default(1)
+
+  pricePerNight          Decimal  @map("price_per_night") @db.Decimal(10, 2)
+  cleaningFee            Decimal? @map("cleaning_fee") @db.Decimal(10, 2)
+  serviceFeePercent      Decimal  @default(10) @map("service_fee_percent") @db.Decimal(5, 2)
+  weeklyDiscountPercent  Decimal? @map("weekly_discount_percent") @db.Decimal(5, 2)
+  monthlyDiscountPercent Decimal? @map("monthly_discount_percent") @db.Decimal(5, 2)
+
+  minNights      Int     @default(1) @map("min_nights")
+  maxNights      Int?    @map("max_nights")
+  checkInTime    String  @default("14:00") @map("check_in_time")
+  checkOutTime   String  @default("11:00") @map("check_out_time")
+  instantBooking Boolean @default(false) @map("instant_booking")
+
+  houseRules String[] @map("house_rules") @default([])
+
+  cancellationPolicy CancellationPolicyType @default(MODERATE) @map("cancellation_policy")
+
+  rejectionReason String?   @map("rejection_reason")
+  reviewedBy      String?   @map("reviewed_by")
+  reviewedAt      DateTime? @map("reviewed_at")
+
+  publishedAt DateTime? @map("published_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  host         User                  @relation("HostProperties", fields: [hostId], references: [id])
+  images       PropertyImage[]
+  amenities    PropertyAmenity[]
+  blockedDates PropertyBlockedDate[]
+  bookings     Booking[]
+  reviews      Review[]
+  favorites    Favorite[]
+
+  averageRating Decimal? @map("average_rating") @db.Decimal(3, 2)
+  reviewCount   Int      @default(0) @map("review_count")
+
+  @@index([hostId])
+  @@index([status])
+  @@index([city])
+  @@index([type])
+  @@index([pricePerNight])
+  @@map("properties")
+}
+
+model PropertyImage {
+  id         String  @id @default(uuid())
+  propertyId String  @map("property_id")
+  uploadId   String  @map("upload_id")
+
+  sortOrder  Int     @default(0) @map("sort_order")
+  isCover    Boolean @default(false) @map("is_cover")
+  caption    String?
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  upload   Upload   @relation(fields: [uploadId], references: [id])
+
+  @@index([propertyId])
+  @@map("property_images")
+}
+
+model Amenity {
+  id       String  @id @default(uuid())
+  name     String  @unique
+  slug     String  @unique
+  category String?
+  icon     String?
+
+  properties PropertyAmenity[]
+
+  @@map("amenities")
+}
+
+model PropertyAmenity {
+  propertyId String @map("property_id")
+  amenityId  String @map("amenity_id")
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  amenity  Amenity  @relation(fields: [amenityId], references: [id], onDelete: Cascade)
+
+  @@id([propertyId, amenityId])
+  @@map("property_amenities")
+}
+
+model PropertyBlockedDate {
+  id         String   @id @default(uuid())
+  propertyId String   @map("property_id")
+
+  startDate  DateTime @map("start_date")
+  endDate    DateTime @map("end_date")
+  reason     String?
+
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+  @@index([startDate, endDate])
+  @@map("property_blocked_dates")
+}

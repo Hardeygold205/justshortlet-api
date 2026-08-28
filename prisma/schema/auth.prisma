@@ -1,23 +1,8 @@
 enum OtpPurpose {
   LOGIN
-  REGISTER
   PASSWORD_RESET
   VERIFY_PHONE
-}
-
-model RefreshToken {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  token     String   @unique
-  isRevoked Boolean  @default(false) @map("is_revoked")
-  expiresAt DateTime @map("expires_at")
-  
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@index([userId])
-  @@map("refresh_tokens")
+  VERIFY_EMAIL
 }
 
 model OtpVerification {
@@ -32,19 +17,4 @@ model OtpVerification {
 
   @@index([target])
   @@map("otp_verifications")
-}
-
-model AuthAuditLog {
-  id        String   @id @default(uuid())
-  userId    String?  @map("user_id")
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  
-  event     String   // e.g., "LOGIN_SUCCESS", "LOGIN_FAILED", "PASSWORD_RESET"
-  ipAddress String?  @map("ip_address")
-  userAgent String?  @map("user_agent")
-  
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@index([userId])
-  @@map("auth_audit_logs")
 }

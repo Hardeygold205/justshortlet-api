@@ -1,0 +1,59 @@
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  REJECTED
+  COMPLETED
+}
+
+enum CancelledBy {
+  GUEST
+  HOST
+  ADMIN
+  SYSTEM
+}
+
+model Booking {
+  id         String @id @default(uuid())
+  propertyId String @map("property_id")
+  userId     String @map("user_id")
+
+  checkIn  DateTime @map("check_in")
+  checkOut DateTime @map("check_out")
+  nights   Int
+  guests   Int
+
+  // Snapshotted at booking time — never recalculated from Property later
+  pricePerNight     Decimal @map("price_per_night") @db.Decimal(10, 2)
+  cleaningFee       Decimal @default(0) @map("cleaning_fee") @db.Decimal(10, 2)
+  serviceFeePercent Decimal @map("service_fee_percent") @db.Decimal(5, 2)
+  subtotal          Decimal @db.Decimal(10, 2)
+  serviceFee        Decimal @map("service_fee") @db.Decimal(10, 2)
+  total             Decimal @db.Decimal(10, 2)
+
+  status BookingStatus @default(PENDING)
+
+  guestNote  String? @map("guest_note")   // message from guest to host on request
+  hostNote   String? @map("host_note")    // reason if host rejects, or note on confirm
+
+  cancelledBy     CancelledBy? @map("cancelled_by")
+  cancellationReason String?   @map("cancellation_reason")
+  cancelledAt     DateTime?    @map("cancelled_at")
+
+  confirmedAt DateTime? @map("confirmed_at")
+  completedAt DateTime? @map("completed_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  property Property @relation(fields: [propertyId], references: [id])
+  user     User     @relation("UserBookings", fields: [userId], references: [id])
+  payment  Payment?
+  review   Review?
+
+  @@index([propertyId])
+  @@index([userId])
+  @@index([status])
+  @@index([checkIn, checkOut])
+  @@map("bookings")
+}

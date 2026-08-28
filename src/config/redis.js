@@ -7,7 +7,7 @@ const redis = createClient({
   database: Number(ENV.REDIS_DATABASE) || 0,
   socket: {
     host: ENV.REDIS_HOST,
-    port: ENV.REDIS_PORT,
+    port: Number(ENV.REDIS_PORT),
     tls: false,
     reconnectStrategy: (retries) => {
       if (retries > 10) {

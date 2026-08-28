@@ -1,0 +1,61 @@
+enum ActivityCategory {
+  ACCOUNT
+  BOOKING
+  TRANSACTION
+  SYSTEM
+  AUTH
+}
+
+enum ActivityType {
+  ACCOUNT_CREATED
+  ACCOUNT_UPDATED
+  ACCOUNT_SUSPENDED
+  ACCOUNT_DISABLED
+  ACCOUNT_ACTIVATED
+  ACCOUNT_DELETED
+
+  EMAIL_ADDED
+  PHONE_ADDED
+  
+  ROLE_CHANGED
+  STATUS_CHANGED
+
+  BOOKING_CREATED
+  BOOKING_UPDATED
+  BOOKING_CANCELLED
+
+  PAYMENT_INITIATED
+  PAYMENT_COMPLETED
+  PAYMENT_FAILED
+
+  SYSTEM_EVENT
+
+  LOGIN_SUCCESS
+  LOGIN_FAILED
+
+  PASSWORD_RESET_REQUESTED
+  PASSWORD_RESET_SUCCESS
+
+  ADMIN_CREATED
+  ADMIN_UPDATED
+  ADMIN_DELETED
+}
+
+model Activity {
+  id          String           @id @default(uuid())
+  type        ActivityType
+  category    ActivityCategory
+  description String
+  actorId     String?
+  actorEmail  String?
+  targetId    String?
+  metadata    Json?
+  createdAt   DateTime         @default(now())
+
+  @@index([createdAt])
+  @@index([type])
+  @@index([category])
+  @@index([targetId])
+  @@index([actorId])
+  @@map("activities")
+}

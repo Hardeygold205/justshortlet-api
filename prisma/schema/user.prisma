@@ -1,27 +1,47 @@
 enum Role {
-  USER
+  GUEST
+  HOST
   ADMIN
-  CLIENT
+  SUPER_ADMIN
+}
+
+enum Status {
+  ACTIVE
+  DISABLED
+  SUSPENDED
 }
 
 model User {
-  id           String    @id @default(uuid())
-  email        String?   @unique
-  phone        String?   @unique
-  passwordHash String?   @map("password_hash")
-  supabaseId   String?   @unique @map("supabase_id")
-  provider     String    @default("local") // "local", "google", "apple", "phone", "email_otp"
-  providerId   String?   @map("provider_id")
-  role         Role      @default(USER)
-  isActive     Boolean   @default(true) @map("is_active")
+  id            String    @id @default(uuid())
+
+  email         String?   @unique
+  phone         String?   @unique
+  emailVerified Boolean   @default(false) @map("email_verified")
+  phoneVerified Boolean   @default(false) @map("phone_verified")
+
+  passwordHash  String?   @map("password_hash")
+
+  provider      String    @default("local")
+  providerId    String?   @map("provider_id")
+
+  role          Role      @default(GUEST)
+  status        Status    @default(ACTIVE)
+  isActive      Boolean   @default(true) @map("is_active")
+
+  lastLoginAt   DateTime? @map("last_login_at")
+  deletedAt     DateTime? @map("deleted_at")
 
   // Relations
-  profile       Profile?
-  refreshTokens RefreshToken[]
-  auditLogs     AuthAuditLog[]
+  profile    Profile?
+  uploads    Upload[]
 
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
+  properties Property[] @relation("HostProperties")
+  bookings   Booking[]  @relation("UserBookings")
+  reviews    Review[]   @relation("UserReviews")
+  favorites  Favorite[]
+
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
 
   @@map("users")
 }
@@ -35,8 +55,23 @@ model Profile {
   firstName    String?   @map("first_name")
   lastName     String?   @map("last_name")
   dob          DateTime?
+
+  idVerified      Boolean @default(false) @map("id_verified")
+  addressVerified Boolean @default(false) @map("address_verified")
+
+  address     String?
+  city        String?
+  state       String?
+  country     String?   @default("Nigeria")
+
   avatarUrl    String?   @map("avatar_url")
   thumbnailUrl String?   @map("thumbnail_url")
+  avatarPath   String?   @map("avatar_path")
+
+  bannerUrl          String? @map("banner_url")
+  bannerThumbnailUrl String? @map("banner_thumbnail_url")
+  bannerPath         String? @map("banner_path")
+
   bio          String?
 
   createdAt    DateTime  @default(now()) @map("created_at")

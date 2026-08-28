@@ -2,13 +2,45 @@ import path from "path";
 import fs from "fs/promises";
 import sharp from "sharp";
 import cloudinary from "../../config/cloudinary.js";
-import { supabaseAdmin } from "../../config/supabase.js";
 import { UPLOAD_ROOT, detectType } from "../../config/multer.js";
 import ENV from "../../config/env.js";
+import { prisma } from "../../config/prisma.js";
+import AppError from "../../utils/AppError.js";
+import { STATUS_CODES } from "../../constants/statusCode.js";
+import { CATEGORY_MAP, RESOURCE_TYPE_MAP } from "../../constants/upload.js";
 
-// ─────────────────────────────────────────────
+const saveUploadRecord = async (userId, folder, result) => {
+  console.log("Attempting to save upload record:", {
+    userId,
+    driver: ENV.STORAGE_DRIVER === "cloudinary" ? "CLOUDINARY" : "LOCAL",
+    category: CATEGORY_MAP[result.resourceType],
+    identifier: result.identifier,
+  });
+
+  try {
+    const record = await prisma.upload.create({
+      data: {
+        userId,
+        driver: ENV.STORAGE_DRIVER === "cloudinary" ? "CLOUDINARY" : "LOCAL",
+        category: CATEGORY_MAP[result.resourceType] || "DOC",
+        url: result.url,
+        thumbnailUrl: result.thumbnailUrl,
+        identifier: result.identifier,
+        folder,
+        format: result.format,
+        size: result.size,
+        duration: result.duration,
+      },
+    });
+    console.log("Upload record saved:", record.id);
+    return record;
+  } catch (err) {
+    console.error("Failed to save upload record:", err);
+    throw err;
+  }
+};
+
 // LOCAL STORAGE
-// ─────────────────────────────────────────────
 
 export const buildFileUrl = (relativePath) => {
   const normalized = relativePath.split(path.sep).join("/");
@@ -40,7 +72,7 @@ export const registerLocalUpload = async (file) => {
   return {
     url: buildFileUrl(relativePath),
     thumbnailUrl,
-    path: relativePath,
+    identifier: relativePath, // renamed from `path` to match Upload.identifier
     resourceType: fileType,
     format: path.extname(file.originalname).replace(".", ""),
     size: file.size,
@@ -57,9 +89,7 @@ export const deleteLocalFile = async (relativePath) => {
   }
 };
 
-// ─────────────────────────────────────────────
 // CLOUDINARY
-// ─────────────────────────────────────────────
 
 export const generateCloudinaryThumbnailUrl = (
   publicId,
@@ -121,7 +151,7 @@ export const uploadToCloudinary = async (fileBuffer, folder, mimetype) => {
         resolve({
           url: result.secure_url,
           thumbnailUrl,
-          publicId: result.public_id,
+          identifier: result.public_id, // renamed from publicId to match Upload.identifier
           resourceType: result.resource_type,
           format: result.format,
           size: result.bytes,
@@ -140,101 +170,49 @@ export const deleteFromCloudinary = async (
   await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
 };
 
-// ─────────────────────────────────────────────
-// UNIFIED ENTRY POINTS — driver decided by ENV.STORAGE_DRIVER only
-// ─────────────────────────────────────────────
+// UPLOAD ENTRY POINTS
 
-export const uploadSingleFile = async (file, folder = "general") => {
-  if (ENV.STORAGE_DRIVER === "cloudinary") {
-    return uploadToCloudinary(file.buffer, folder, file.mimetype);
-  }
-  return registerLocalUpload(file);
+export const uploadSingleFile = async (file, folder = "general", userId) => {
+  const result =
+    ENV.STORAGE_DRIVER === "cloudinary"
+      ? await uploadToCloudinary(file.buffer, folder, file.mimetype)
+      : await registerLocalUpload(file);
+
+  const record = await saveUploadRecord(userId, folder, result);
+
+  return { ...result, id: record.id };
 };
 
-export const uploadMultipleFiles = async (files, folder = "general") => {
-  return Promise.all(files.map((file) => uploadSingleFile(file, folder)));
-};
-
-export const deleteUploadedFile = async (
-  identifier,
-  resourceType = "image",
-) => {
-  if (ENV.STORAGE_DRIVER === "cloudinary") {
-    return deleteFromCloudinary(identifier, resourceType);
-  }
-  return deleteLocalFile(identifier);
-};
-
-export const uploadAvatar = async (fileBuffer, userId, mimeType) => {
-  const filePath = `avatars/${userId}_${Date.now()}.jpg`;
-
-  const { error } = await supabaseAdmin.storage
-    .from("images")
-    .upload(filePath, fileBuffer, {
-      contentType: mimeType,
-      upsert: true,
-    });
-
-  if (error) throw new Error(error.message);
-
-  const { data } = supabaseAdmin.storage.from("images").getPublicUrl(filePath);
-
-  const { data: thumbData } = supabaseAdmin.storage
-    .from("images")
-    .getPublicUrl(filePath, {
-      transform: {
-        width: 150,
-        height: 150,
-        resize: "cover",
-      },
-    });
-
-  return {
-    avatarUrl: data.publicUrl,
-    thumbnailUrl: thumbData.publicUrl,
-  };
-};
-
-export const updateAvatar = async (
-  fileBuffer,
+export const uploadMultipleFiles = async (
+  files,
+  folder = "general",
   userId,
-  mimeType,
-  oldFilePath = null,
 ) => {
-  const filePath = `avatars/${userId}_${Date.now()}.jpg`;
-
-  const { error } = await supabaseAdmin.storage
-    .from("images")
-    .upload(filePath, fileBuffer, {
-      contentType: mimeType,
-      upsert: true,
-    });
-
-  if (error) throw new Error(error.message);
-
-  const { data } = supabaseAdmin.storage.from("images").getPublicUrl(filePath);
-
-  const { data: thumbData } = supabaseAdmin.storage
-    .from("images")
-    .getPublicUrl(filePath, {
-      transform: { width: 150, height: 150, resize: "cover" },
-    });
-
-  if (oldFilePath) {
-    await supabaseAdmin.storage.from("images").remove([oldFilePath]);
-  }
-
-  return {
-    avatarUrl: data.publicUrl,
-    thumbnailUrl: thumbData.publicUrl,
-    filePath,
-  };
+  return Promise.all(
+    files.map((file) => uploadSingleFile(file, folder, userId)),
+  );
 };
 
-export const deleteAvatar = async (filePath) => {
-  const { error } = await supabaseAdmin.storage
-    .from("images")
-    .remove([filePath]);
+export const deleteUploadedFile = async (identifier, userId) => {
+  const record = await prisma.upload.findFirst({ where: { identifier } });
 
-  if (error) throw new Error(error.message);
+  if (!record) {
+    throw new AppError("File not found", STATUS_CODES.NOT_FOUND);
+  }
+
+  if (record.userId !== userId) {
+    throw new AppError(
+      "You do not have permission to delete this file",
+      STATUS_CODES.FORBIDDEN,
+    );
+  }
+
+  if (record.driver === "CLOUDINARY") {
+    const resourceType = RESOURCE_TYPE_MAP[record.category] || "image";
+    await deleteFromCloudinary(identifier, resourceType);
+  } else {
+    await deleteLocalFile(identifier);
+  }
+
+  await prisma.upload.delete({ where: { id: record.id } });
 };

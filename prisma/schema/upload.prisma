@@ -1,0 +1,40 @@
+enum UploadCategory {
+  IMAGE
+  VIDEO
+  AUDIO
+  DOC
+}
+
+enum StorageDriver {
+  LOCAL
+  CLOUDINARY
+}
+
+model Upload {
+  id            String         @id @default(uuid())
+  userId        String
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  propertyImages PropertyImage[]
+
+  driver        StorageDriver  @default(CLOUDINARY)
+  category      UploadCategory
+
+  url           String
+  thumbnailUrl  String?
+
+  identifier    String
+
+  folder        String         @default("general")
+  format        String?
+  size          Int?           
+  duration      Float?        
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([userId])
+  @@index([identifier])
+
+  @@map("uploads")
+}

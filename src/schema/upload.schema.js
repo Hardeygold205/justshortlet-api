@@ -1,18 +1,10 @@
 import { z } from "zod";
-
-const CATEGORIES = ["image", "video", "audio", "doc"];
+import { UPLOAD_FOLDERS, CATEGORIES } from "../constants/upload.js";
 
 export const uploadFileSchema = z.object({
   body: z.object({
     folder: z
-      .string()
-      .trim()
-      .min(1)
-      .max(50)
-      .regex(
-        /^[a-zA-Z0-9_-]+$/,
-        "Folder can only contain letters, numbers, hyphens and underscores",
-      )
+      .enum(UPLOAD_FOLDERS)
       .optional()
       .default("general")
       .openapi({ example: "posts" }),
@@ -25,11 +17,7 @@ export const uploadFileSchema = z.object({
 export const uploadAnyFileSchema = z.object({
   body: z.object({
     folder: z
-      .string()
-      .trim()
-      .min(1)
-      .max(50)
-      .regex(/^[a-zA-Z0-9_-]+$/)
+      .enum(UPLOAD_FOLDERS)
       .optional()
       .default("general")
       .openapi({ example: "posts" }),
@@ -42,6 +30,5 @@ export const deleteFileSchema = z.object({
       .string()
       .min(1, "File identifier is required")
       .openapi({ example: "images/171234-abc.jpg" }),
-    resourceType: z.enum(["image", "video", "raw"]).optional().default("image"),
   }),
 });

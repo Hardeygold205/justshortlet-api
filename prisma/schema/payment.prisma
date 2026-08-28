@@ -1,0 +1,39 @@
+enum PaymentStatus {
+  PENDING
+  SUCCESSFUL
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum PaymentProvider {
+  PAYSTACK
+  FLUTTERWAVE
+}
+
+model Payment {
+  id        String @id @default(uuid())
+  bookingId String @unique @map("booking_id")
+
+  provider  PaymentProvider
+  reference String          @unique // provider's transaction reference
+  amount    Decimal         @db.Decimal(10, 2)
+  currency  String          @default("NGN")
+
+  status PaymentStatus @default(PENDING)
+
+  paidAt     DateTime? @map("paid_at")
+  refundedAt DateTime? @map("refunded_at")
+
+  providerMetadata Json? @map("provider_metadata") // raw webhook payload for audit/debugging
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+
+  @@index([bookingId])
+  @@index([reference])
+  @@index([status])
+  @@map("payments")
+}

@@ -1,26 +1,20 @@
 import {
-  exchangeSupabaseToken as exchangeToken,
   registerUser,
   loginUser,
   refreshUserToken,
   logoutUser,
+  socialLogin,
+  requestPasswordReset,
+  resetPassword,
+  requestPhoneOtp,
+  verifyPhoneOtp,
+  verifyEmailOtp,
+  requestEmailOtp,
 } from "./auth.service.js";
 import AppError from "../../utils/AppError.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import { STATUS_CODES } from "../../constants/statusCode.js";
 import { successResponse } from "../../utils/response.js";
-
-export const exchangeSupabaseToken = asyncHandler(async (req, res) => {
-  const { supabaseAccessToken } = req.body;
-  const result = await exchangeToken(supabaseAccessToken);
-
-  return successResponse(
-    res,
-    STATUS_CODES.OK,
-    "Token exchanged successfully",
-    result,
-  );
-});
 
 export const register = asyncHandler(async (req, res) => {
   const result = await registerUser(req.body);
@@ -33,9 +27,9 @@ export const register = asyncHandler(async (req, res) => {
   );
 });
 
-export const login = asyncHandler(async (req, res) => {
-  const result = await loginUser(req.body);
-
+export const socialLoginHandler = asyncHandler(async (req, res) => {
+  const { provider, token } = req.body;
+  const result = await socialLogin(provider, token);
   return successResponse(res, STATUS_CODES.OK, "Login successful", result);
 });
 
@@ -51,6 +45,12 @@ export const refreshToken = asyncHandler(async (req, res) => {
   );
 });
 
+export const login = asyncHandler(async (req, res) => {
+  const result = await loginUser(req.body);
+
+  return successResponse(res, STATUS_CODES.OK, "Login successful", result);
+});
+
 export const logout = asyncHandler(async (req, res) => {
   const token = req.headers.authorization?.split(" ")[1];
 
@@ -64,4 +64,48 @@ export const logout = asyncHandler(async (req, res) => {
   await logoutUser(req.user.id, token);
 
   return successResponse(res, STATUS_CODES.OK, "Logged out successfully");
+});
+
+export const forgotPassword = asyncHandler(async (req, res) => {
+  await requestPasswordReset(req.body.email);
+  return successResponse(
+    res,
+    STATUS_CODES.OK,
+    "If an account exists with that email, a reset code has been sent.",
+  );
+});
+
+export const resetPasswordHandler = asyncHandler(async (req, res) => {
+  await resetPassword(req.body);
+  return successResponse(res, STATUS_CODES.OK, "Password reset successfully");
+});
+
+export const requestPhoneOtpHandler = asyncHandler(async (req, res) => {
+  await requestPhoneOtp(req.body.phone);
+  return successResponse(res, STATUS_CODES.OK, "OTP sent");
+});
+
+export const verifyPhoneOtpHandler = asyncHandler(async (req, res) => {
+  const result = await verifyPhoneOtp(req.body.phone, req.body.code);
+  return successResponse(
+    res,
+    STATUS_CODES.OK,
+    "Phone OTP verified successful",
+    result,
+  );
+});
+
+export const requestEmailOtpHandler = asyncHandler(async (req, res) => {
+  await requestEmailOtp(req.body.email);
+  return successResponse(res, STATUS_CODES.OK, "OTP sent");
+});
+
+export const verifyEmailOtpHandler = asyncHandler(async (req, res) => {
+  const result = await verifyEmailOtp(req.body.email, req.body.code);
+  return successResponse(
+    res,
+    STATUS_CODES.OK,
+    "Email OTP verified successful",
+    result,
+  );
 });
