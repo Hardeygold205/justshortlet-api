@@ -35,8 +35,10 @@ app.use(
   cors({
     origin: [
       "http://localhost:4200",
-      "https://justshortlet-admin.vercel.app",
+      "https://justshortlet.com",
+      "https://www.justshortlet.com",
       "https://admin.justshortlet.com",
+      "https://www.admin.justshortlet.com",
     ],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true,
