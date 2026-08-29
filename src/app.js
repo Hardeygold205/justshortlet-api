@@ -15,7 +15,6 @@ import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./config/swagger.js";
 
 import "./config/postgres.js";
-import "./config/mysql.js";
 import "./config/redis.js";
 import "./config/multer.js";
 import "./config/cloudinary.js";
@@ -34,7 +33,11 @@ app.use(
 
 app.use(
   cors({
-    origin: ["http://localhost:4200"],
+    origin: [
+      "http://localhost:4200",
+      "https://justshortlet-admin.vercel.app",
+      "https://admin.justshortlet.com",
+    ],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true,
   }),

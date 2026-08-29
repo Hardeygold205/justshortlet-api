@@ -2,13 +2,8 @@ import { createClient } from "redis";
 import ENV from "./env.js";
 
 const redis = createClient({
-  username: ENV.REDIS_USERNAME,
-  password: ENV.REDIS_PASSWORD,
-  database: Number(ENV.REDIS_DATABASE) || 0,
+  url: ENV.REDIS_URL,
   socket: {
-    host: ENV.REDIS_HOST,
-    port: Number(ENV.REDIS_PORT),
-    tls: false,
     reconnectStrategy: (retries) => {
       if (retries > 10) {
         console.error("Redis: too many reconnect attempts");
