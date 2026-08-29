@@ -72,7 +72,7 @@ const ensureDirs = () => {
     fs.mkdirSync(dir, { recursive: true });
   }
 };
-ensureDirs();
+// ensureDirs();
 
 const uniqueFilename = (file) => {
   const ext = path.extname(file.originalname);
