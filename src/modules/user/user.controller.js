@@ -90,7 +90,7 @@ export const getMe = asyncHandler(async (req, res) => {
 });
 
 export const getOneUser = asyncHandler(async (req, res) => {
-  const user = await getUserById(req.validated.params.userId);
+  const user = await getUserById(req.params.userId);
 
   if (!user) {
     throw new AppError("User not found", STATUS_CODES.NOT_FOUND);
@@ -105,12 +105,12 @@ export const getOneUser = asyncHandler(async (req, res) => {
 });
 
 export const deleteOneUser = asyncHandler(async (req, res) => {
-  await deleteUserById(req.validated.params.userId);
+  await deleteUserById(req.params.userId);
   return successResponse(res, STATUS_CODES.OK, "User deleted successfully");
 });
 
 export const getUsers = asyncHandler(async (req, res) => {
-  const { page, limit, search } = req.validated.query;
+  const { page, limit, search } = req.validatedQuery;
   const result = await getAllUsers({ page, limit, search });
 
   return successResponse(
@@ -122,7 +122,7 @@ export const getUsers = asyncHandler(async (req, res) => {
 });
 
 export const updateMe = asyncHandler(async (req, res) => {
-  const user = await updateCurrentUser(req.user.id, req.validated.body);
+  const user = await updateCurrentUser(req.user.id, req.body);
   return successResponse(
     res,
     STATUS_CODES.OK,

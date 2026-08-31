@@ -71,6 +71,12 @@ export const propertyIdParamSchema = z.object({
   params: z.object({ id: z.string().uuid() }),
 });
 
+export const publicPropertyParamSchema = z.object({
+  params: z.object({
+    id: z.string().min(1),
+  }),
+});
+
 export const listPropertiesSchema = z.object({
   query: z.object({
     page: z.coerce.number().int().min(1).optional().default(1),
@@ -87,6 +93,26 @@ export const listPropertiesSchema = z.object({
   }),
 });
 
+export const adminListPropertiesSchema = z.object({
+  query: z.object({
+    page: z.coerce.number().int().min(1).optional().default(1),
+    limit: z.coerce.number().int().min(1).max(50).optional().default(20),
+    status: z
+      .enum([
+        "DRAFT",
+        "PENDING_REVIEW",
+        "PUBLISHED",
+        "REJECTED",
+        "SUSPENDED",
+        "ARCHIVED",
+      ])
+      .optional(),
+    city: z.string().optional(),
+    type: z.enum(PROPERTY_TYPES).optional(),
+    hostId: z.string().uuid().optional(),
+  }),
+});
+
 export const adminUpdateStatusSchema = z.object({
   params: z.object({ id: z.string().uuid() }),
   body: z.object({
@@ -96,7 +122,9 @@ export const adminUpdateStatusSchema = z.object({
 });
 
 export const calendarQuerySchema = z.object({
-  params: z.object({ id: z.string().uuid() }),
+  params: z.object({
+    id: z.string().min(1),
+  }),
   query: z.object({
     from: z.iso.date().optional(),
     to: z.iso.date().optional(),
@@ -110,4 +138,19 @@ export const blockDatesSchema = z.object({
     endDate: z.iso.date(),
     reason: z.string().trim().max(200).optional(),
   }),
+});
+
+export const attachImagesSchema = z.object({
+  params: z.object({ id: z.string().uuid() }),
+  body: z.object({
+    uploadIds: z.array(z.string().uuid()).min(1).max(20),
+  }),
+});
+
+export const setCoverImageSchema = z.object({
+  params: z.object({ id: z.string().uuid(), imageId: z.string().uuid() }),
+});
+
+export const deletePropertyImageSchema = z.object({
+  params: z.object({ id: z.string().uuid(), imageId: z.string().uuid() }),
 });

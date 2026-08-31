@@ -1,10 +1,9 @@
 export const UPLOAD_FOLDERS = [
   "general",
-  "posts",
-  "chats",
+  "banner",
   "avatars",
   "documents",
-  "gallery",
+  "property-images",
 ];
 
 export const CATEGORIES = ["image", "video", "audio", "doc"];

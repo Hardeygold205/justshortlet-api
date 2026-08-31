@@ -18,7 +18,7 @@ export const listActivitiesHandler = asyncHandler(async (req, res) => {
     to,
     actorId,
     targetId,
-  } = req.query;
+  } = req.validatedQuery;
 
   const result = await getAllActivities({
     page: page ? parseInt(page, 10) : 1,
@@ -53,7 +53,7 @@ export const getUserActivitiesHandler = asyncHandler(async (req, res) => {
     );
   }
 
-  const result = await getActivitiesByUserId(userId, req.query);
+  const result = await getActivitiesByUserId(userId, req.validatedQuery);
   return successResponse(
     res,
     STATUS_CODES.OK,

@@ -7,42 +7,21 @@ import {
   createAdminSchema,
   updateAdminSchema,
 } from "../schema/admin.schema.js";
-import {
-  registerSchema,
-  loginSchema,
-  refreshTokenSchema,
-  socialLoginSchema,
-  phoneOtpRequestSchema,
-  phoneOtpVerifySchema,
-  emailOtpRequestSchema,
-  emailOtpVerifySchema,
-  resetPasswordSchema,
-  forgotPasswordSchema,
-} from "../schema/auth.schema.js";
-import {
-  updateMeSchema,
-  getUserByIdSchema,
-  getUsersSchema,
-  updateProfileMediaSchema,
-  changePasswordSchema,
-  verifyEmailSchema,
-  verifyPhoneSchema,
-  requestVerifyEmailSchema,
-  requestVerifyPhoneSchema,
-  adminUpdateUserSchema,
-} from "../schema/user.schema.js";
+import * as authSchema from "../schema/auth.schema.js";
+import * as userSchema from "../schema/user.schema.js";
 import { uploadFileSchema, deleteFileSchema } from "../schema/upload.schema.js";
 import { UPLOAD_FOLDERS } from "../constants/upload.js";
 import {
   userActivitiesSchema,
   listActivitiesSchema,
 } from "../schema/activity.schema.js";
+import * as schema from "../schema/property.schema.js";
+import * as amenitySchema from "../schema/amenity.schema.js";
 
 const registry = new OpenAPIRegistry();
+const propertyBodySchema = schema.createPropertySchema.shape.body;
 
-// ─────────────────────────────────────────────
 // SECURITY SCHEME (for bearerAuth references above)
-// ─────────────────────────────────────────────
 
 registry.registerComponent("securitySchemes", "bearerAuth", {
   type: "http",
@@ -140,9 +119,7 @@ registry.registerPath({
   },
 });
 
-// ─────────────────────────────────────────────
 // AUTH
-// ─────────────────────────────────────────────
 
 registry.registerPath({
   method: "post",
@@ -151,7 +128,9 @@ registry.registerPath({
   summary: "Register with email and password",
   request: {
     body: {
-      content: { "application/json": { schema: registerSchema.shape.body } },
+      content: {
+        "application/json": { schema: authSchema.registerSchema.shape.body },
+      },
     },
   },
   responses: {
@@ -167,7 +146,9 @@ registry.registerPath({
   summary: "Login with email and password",
   request: {
     body: {
-      content: { "application/json": { schema: loginSchema.shape.body } },
+      content: {
+        "application/json": { schema: authSchema.loginSchema.shape.body },
+      },
     },
   },
   responses: {
@@ -184,7 +165,9 @@ registry.registerPath({
   request: {
     body: {
       content: {
-        "application/json": { schema: refreshTokenSchema.shape.body },
+        "application/json": {
+          schema: authSchema.refreshTokenSchema.shape.body,
+        },
       },
     },
   },
@@ -201,7 +184,9 @@ registry.registerPath({
   summary: "Sign up or log in via Google/Apple",
   request: {
     body: {
-      content: { "application/json": { schema: socialLoginSchema.shape.body } },
+      content: {
+        "application/json": { schema: authSchema.socialLoginSchema.shape.body },
+      },
     },
   },
   responses: {
@@ -220,7 +205,9 @@ registry.registerPath({
   request: {
     body: {
       content: {
-        "application/json": { schema: phoneOtpRequestSchema.shape.body },
+        "application/json": {
+          schema: authSchema.phoneOtpRequestSchema.shape.body,
+        },
       },
     },
   },
@@ -235,7 +222,9 @@ registry.registerPath({
   request: {
     body: {
       content: {
-        "application/json": { schema: phoneOtpVerifySchema.shape.body },
+        "application/json": {
+          schema: authSchema.phoneOtpVerifySchema.shape.body,
+        },
       },
     },
   },
@@ -253,7 +242,9 @@ registry.registerPath({
   request: {
     body: {
       content: {
-        "application/json": { schema: emailOtpRequestSchema.shape.body },
+        "application/json": {
+          schema: authSchema.emailOtpRequestSchema.shape.body,
+        },
       },
     },
   },
@@ -271,7 +262,9 @@ registry.registerPath({
   request: {
     body: {
       content: {
-        "application/json": { schema: emailOtpVerifySchema.shape.body },
+        "application/json": {
+          schema: authSchema.emailOtpVerifySchema.shape.body,
+        },
       },
     },
   },
@@ -289,7 +282,9 @@ registry.registerPath({
   request: {
     body: {
       content: {
-        "application/json": { schema: forgotPasswordSchema.shape.body },
+        "application/json": {
+          schema: authSchema.forgotPasswordSchema.shape.body,
+        },
       },
     },
   },
@@ -309,7 +304,9 @@ registry.registerPath({
   request: {
     body: {
       content: {
-        "application/json": { schema: resetPasswordSchema.shape.body },
+        "application/json": {
+          schema: authSchema.resetPasswordSchema.shape.body,
+        },
       },
     },
   },
@@ -331,9 +328,7 @@ registry.registerPath({
   },
 });
 
-// ─────────────────────────────────────────────
-// USER
-// ─────────────────────────────────────────────
+// USERS
 
 registry.registerPath({
   method: "patch",
@@ -343,7 +338,9 @@ registry.registerPath({
   security: [{ bearerAuth: [] }],
   request: {
     body: {
-      content: { "application/json": { schema: updateMeSchema.shape.body } },
+      content: {
+        "application/json": { schema: userSchema.updateMeSchema.shape.body },
+      },
     },
   },
   responses: {
@@ -372,10 +369,12 @@ registry.registerPath({
   summary: "Admin: update a user's role (GUEST↔HOST) or status",
   security: [{ bearerAuth: [] }],
   request: {
-    params: adminUpdateUserSchema.shape.params,
+    params: userSchema.adminUpdateUserSchema.shape.params,
     body: {
       content: {
-        "application/json": { schema: adminUpdateUserSchema.shape.body },
+        "application/json": {
+          schema: userSchema.adminUpdateUserSchema.shape.body,
+        },
       },
     },
   },
@@ -404,7 +403,7 @@ registry.registerPath({
   tags: ["User"],
   summary: "Get user by ID",
   security: [{ bearerAuth: [] }],
-  request: { params: getUserByIdSchema.shape.params },
+  request: { params: userSchema.getUserByIdSchema.shape.params },
   responses: {
     200: { description: "User found" },
     404: { description: "User not found" },
@@ -444,7 +443,7 @@ registry.registerPath({
   tags: ["User"],
   summary: "Get All users",
   security: [{ bearerAuth: [] }],
-  request: { query: getUsersSchema.shape.query },
+  request: { query: userSchema.getUsersSchema.shape.query },
   responses: {
     200: { description: "List of users" },
   },
@@ -458,7 +457,7 @@ registry.registerPath({
     "Upload or replace the current user's avatar or banner (role-restricted)",
   security: [{ bearerAuth: [] }],
   request: {
-    params: updateProfileMediaSchema.shape.params,
+    params: userSchema.updateProfileMediaSchema.shape.params,
     body: {
       content: {
         "multipart/form-data": {
@@ -488,7 +487,7 @@ registry.registerPath({
     body: {
       content: {
         "application/json": {
-          schema: changePasswordSchema.shape.body,
+          schema: userSchema.changePasswordSchema.shape.body,
         },
       },
     },
@@ -513,7 +512,9 @@ registry.registerPath({
   request: {
     body: {
       content: {
-        "application/json": { schema: requestVerifyEmailSchema.shape.body },
+        "application/json": {
+          schema: userSchema.requestVerifyEmailSchema.shape.body,
+        },
       },
     },
   },
@@ -531,7 +532,9 @@ registry.registerPath({
   security: [{ bearerAuth: [] }],
   request: {
     body: {
-      content: { "application/json": { schema: verifyEmailSchema.shape.body } },
+      content: {
+        "application/json": { schema: userSchema.verifyEmailSchema.shape.body },
+      },
     },
   },
   responses: {
@@ -550,7 +553,9 @@ registry.registerPath({
   request: {
     body: {
       content: {
-        "application/json": { schema: requestVerifyPhoneSchema.shape.body },
+        "application/json": {
+          schema: userSchema.requestVerifyPhoneSchema.shape.body,
+        },
       },
     },
   },
@@ -568,7 +573,9 @@ registry.registerPath({
   security: [{ bearerAuth: [] }],
   request: {
     body: {
-      content: { "application/json": { schema: verifyPhoneSchema.shape.body } },
+      content: {
+        "application/json": { schema: userSchema.verifyPhoneSchema.shape.body },
+      },
     },
   },
   responses: {
@@ -733,5 +740,307 @@ registry.registerPath({
   responses: {
     200: { description: "File deleted successfully" },
     400: { description: "Invalid identifier" },
+  },
+});
+
+// PROPERTIES
+
+registry.registerPath({
+  method: "post",
+  path: "/properties/mine",
+  tags: ["Properties"],
+  summary: "Create a new property listing (HOST only)",
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: { content: { "application/json": { schema: propertyBodySchema } } },
+  },
+  responses: {
+    201: { description: "Property created successfully" },
+    403: { description: "Requires HOST role" },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/properties/mine/list",
+  tags: ["Properties"],
+  summary: "List the current host's properties",
+  security: [{ bearerAuth: [] }],
+  responses: { 200: { description: "Properties fetched successfully" } },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/properties/mine/{id}",
+  tags: ["Properties"],
+  summary: "Get one of the current host's properties by id",
+  security: [{ bearerAuth: [] }],
+  request: { params: schema.propertyIdParamSchema.shape.params },
+  responses: {
+    200: { description: "Property fetched successfully" },
+    404: { description: "Property not found" },
+  },
+});
+
+registry.registerPath({
+  method: "patch",
+  path: "/properties/mine/{id}",
+  tags: ["Properties"],
+  summary: "Update a property (resets to DRAFT if it was published/pending)",
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: schema.updatePropertySchema.shape.params,
+    body: {
+      content: {
+        "application/json": { schema: schema.updatePropertySchema.shape.body },
+      },
+    },
+  },
+  responses: {
+    200: { description: "Property updated successfully" },
+    403: { description: "Not authorized to edit this property" },
+    404: { description: "Property not found" },
+  },
+});
+
+registry.registerPath({
+  method: "delete",
+  path: "/properties/mine/{id}",
+  tags: ["Properties"],
+  summary: "Delete a property (fails if it has active bookings)",
+  security: [{ bearerAuth: [] }],
+  request: { params: schema.propertyIdParamSchema.shape.params },
+  responses: {
+    200: { description: "Property deleted successfully" },
+    409: { description: "Cannot delete a property with active bookings" },
+  },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/properties/mine/{id}/submit",
+  tags: ["Properties"],
+  summary: "Submit a DRAFT/REJECTED property for admin review",
+  security: [{ bearerAuth: [] }],
+  request: { params: schema.propertyIdParamSchema.shape.params },
+  responses: {
+    200: { description: "Property submitted for review" },
+    400: { description: "Wrong status, or fewer than 3 photos uploaded" },
+  },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/properties/mine/{id}/block-dates",
+  tags: ["Properties"],
+  summary: "Block dates on a property (maintenance, personal use, etc.)",
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: schema.blockDatesSchema.shape.params,
+    body: {
+      content: {
+        "application/json": { schema: schema.blockDatesSchema.shape.body },
+      },
+    },
+  },
+  responses: {
+    201: { description: "Dates blocked successfully" },
+    409: { description: "Dates overlap an existing booking or block" },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/properties",
+  tags: ["Properties"],
+  summary: "Browse published properties (public)",
+  request: { query: schema.listPropertiesSchema.shape.query },
+  responses: { 200: { description: "Properties fetched successfully" } },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/properties/{id}",
+  tags: ["Properties"],
+  summary: "Get a published property by id or slug (public)",
+  request: {
+    params: schema.publicPropertyParamSchema.shape.params,
+  },
+  responses: {
+    200: { description: "Property fetched successfully" },
+    404: { description: "Property not found" },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/properties/{id}/calendar",
+  tags: ["Properties"],
+  summary: "Get booked/blocked date ranges for a property (public)",
+  request: {
+    params: schema.calendarQuerySchema.shape.params,
+    query: schema.calendarQuerySchema.shape.query,
+  },
+  responses: { 200: { description: "Calendar fetched successfully" } },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/admin/properties",
+  tags: ["Admin Properties"],
+  summary: "List all properties, any status (ADMIN/SUPER_ADMIN only)",
+  security: [{ bearerAuth: [] }],
+  request: { query: schema.adminListPropertiesSchema.shape.query },
+  responses: { 200: { description: "Properties fetched successfully" } },
+});
+
+registry.registerPath({
+  method: "patch",
+  path: "/admin/properties/{id}/status",
+  tags: ["Admin Properties"],
+  summary: "Approve, reject, suspend, or archive a property",
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: schema.adminUpdateStatusSchema.shape.params,
+    body: {
+      content: {
+        "application/json": {
+          schema: schema.adminUpdateStatusSchema.shape.body,
+        },
+      },
+    },
+  },
+  responses: {
+    200: { description: "Property status updated successfully" },
+    400: { description: "Missing rejectionReason when status is REJECTED" },
+  },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/properties/mine/{id}/images",
+  tags: ["Properties"],
+  summary: "Attach previously uploaded images to a property",
+  description:
+    "Links Upload records (from /uploads/multiple/{category}) to this property. " +
+    "The first image ever attached is automatically set as the cover image.",
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: schema.attachImagesSchema.shape.params,
+    body: {
+      content: {
+        "application/json": {
+          schema: schema.attachImagesSchema.shape.body,
+        },
+      },
+    },
+  },
+  responses: {
+    201: { description: "Images attached successfully" },
+    400: { description: "One or more uploads not found or not owned by you" },
+    403: { description: "Not authorized to edit this property" },
+    404: { description: "Property not found" },
+  },
+});
+
+registry.registerPath({
+  method: "patch",
+  path: "/properties/mine/{id}/images/{imageId}/cover",
+  tags: ["Properties"],
+  summary: "Set a specific property image as the cover image",
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: schema.setCoverImageSchema.shape.params,
+  },
+  responses: {
+    200: { description: "Cover image updated" },
+    403: { description: "Not authorized to edit this property" },
+    404: { description: "Property or image not found" },
+  },
+});
+
+registry.registerPath({
+  method: "delete",
+  path: "/properties/mine/{id}/images/{imageId}",
+  tags: ["Properties"],
+  summary: "Remove an image from a property",
+  description:
+    "Unlinks the image from the property. Does not delete the underlying " +
+    "Cloudinary asset. If the removed image was the cover, the next image " +
+    "(by sort order) is automatically promoted to cover.",
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: schema.deletePropertyImageSchema.shape.params,
+  },
+  responses: {
+    200: { description: "Image removed successfully" },
+    403: { description: "Not authorized to edit this property" },
+    404: { description: "Property or image not found" },
+  },
+});
+
+// AMENITIES
+
+registry.registerPath({
+  method: "get",
+  path: "/amenities",
+  tags: ["Amenities"],
+  summary: "List all available amenities (public)",
+  responses: { 200: { description: "Amenities fetched successfully" } },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/amenities",
+  tags: ["Amenities"],
+  summary: "Create a new amenity (ADMIN/SUPER_ADMIN only)",
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        "application/json": {
+          schema: amenitySchema.createAmenitySchema.shape.body,
+        },
+      },
+    },
+  },
+  responses: {
+    201: { description: "Amenity created successfully" },
+    409: { description: "Slug already exists" },
+  },
+});
+
+registry.registerPath({
+  method: "patch",
+  path: "/amenities/{id}",
+  tags: ["Amenities"],
+  summary: "Update an amenity (ADMIN/SUPER_ADMIN only)",
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: amenitySchema.updateAmenitySchema.shape.params,
+    body: {
+      content: {
+        "application/json": {
+          schema: amenitySchema.updateAmenitySchema.shape.body,
+        },
+      },
+    },
+  },
+  responses: {
+    200: { description: "Amenity updated successfully" },
+    404: { description: "Amenity not found" },
+  },
+});
+
+registry.registerPath({
+  method: "delete",
+  path: "/amenities/{id}",
+  tags: ["Amenities"],
+  summary: "Delete an amenity (ADMIN/SUPER_ADMIN only)",
+  security: [{ bearerAuth: [] }],
+  request: { params: amenitySchema.amenityIdParamSchema.shape.params },
+  responses: {
+    200: { description: "Amenity deleted successfully" },
+    409: { description: "Amenity is attached to existing properties" },
   },
 });

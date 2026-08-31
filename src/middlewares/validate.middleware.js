@@ -16,7 +16,11 @@ const validate = (schema) => (req, res, next) => {
       });
     }
 
-    req.validated = result.data;
+    if (result.data.body !== undefined) req.body = result.data.body;
+    if (result.data.params !== undefined) req.params = result.data.params;
+
+    req.validatedQuery = result.data.query;
+
     next();
   } catch (error) {
     next(error);

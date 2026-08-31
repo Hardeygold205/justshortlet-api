@@ -5,11 +5,14 @@ import cors from "cors";
 import errorHandler from "./middlewares/error.middleware.js";
 import { apiLimiter } from "./middlewares/rateLimit.middleware.js";
 
-import activityRoutes from "./modules/activity/activity.route.js";
 import adminRoutes from "./modules/admin/admin.route.js";
+import adminPropertyRoutes from "./modules/admin/admin-property.route.js";
+import activityRoutes from "./modules/activity/activity.route.js";
 import authRoutes from "./modules/auth/auth.route.js";
 import userRoutes from "./modules/user/user.route.js";
 import uploadRoutes from "./modules/upload/upload.route.js";
+import propertyRoutes from "./modules/property/property.route.js";
+import amenityRoutes from "./modules/amenity/amenity.route.js";
 
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./config/swagger.js";
@@ -64,6 +67,9 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/activities", activityRoutes);
 app.use("/api/uploads", uploadRoutes);
+app.use("/api/properties", propertyRoutes);
+app.use("/api/admin/properties", adminPropertyRoutes);
+app.use("/api/amenities", amenityRoutes);
 
 app.use(errorHandler);
 
