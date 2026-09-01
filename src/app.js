@@ -13,6 +13,9 @@ import userRoutes from "./modules/user/user.route.js";
 import uploadRoutes from "./modules/upload/upload.route.js";
 import propertyRoutes from "./modules/property/property.route.js";
 import amenityRoutes from "./modules/amenity/amenity.route.js";
+import bookingRoutes from "./modules/booking/booking.route.js";
+import hostBookingRoutes from "./modules/booking/host-booking.route.js";
+import adminBookingRoutes from "./modules/admin/admin-booking.route.js";
 
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./config/swagger.js";
@@ -70,6 +73,9 @@ app.use("/api/uploads", uploadRoutes);
 app.use("/api/properties", propertyRoutes);
 app.use("/api/admin/properties", adminPropertyRoutes);
 app.use("/api/amenities", amenityRoutes);
+app.use("/api/bookings", bookingRoutes);
+app.use("/api/host/bookings", hostBookingRoutes);
+app.use("/api/admin/bookings", adminBookingRoutes);
 
 app.use(errorHandler);
 

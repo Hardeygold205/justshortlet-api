@@ -17,11 +17,12 @@ import {
 } from "../schema/activity.schema.js";
 import * as schema from "../schema/property.schema.js";
 import * as amenitySchema from "../schema/amenity.schema.js";
+import * as bookingSchema from "../schema/booking.schema.js";
 
 const registry = new OpenAPIRegistry();
 const propertyBodySchema = schema.createPropertySchema.shape.body;
 
-// SECURITY SCHEME (for bearerAuth references above)
+// SECURITY SCHEME
 
 registry.registerComponent("securitySchemes", "bearerAuth", {
   type: "http",
@@ -1056,4 +1057,138 @@ registry.registerPath({
     200: { description: "Amenity deleted successfully" },
     409: { description: "Amenity is attached to existing properties" },
   },
+});
+
+// BOOKINGS
+
+registry.registerPath({
+  method: "post",
+  path: "/bookings",
+  tags: ["Bookings"],
+  summary: "Create a booking request for a property",
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        "application/json": {
+          schema: bookingSchema.createBookingSchema.shape.body,
+        },
+      },
+    },
+  },
+  responses: {
+    201: { description: "Booking created successfully" },
+    400: { description: "Guest count, nights, or dates invalid" },
+    409: { description: "Dates no longer available" },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/bookings",
+  tags: ["Bookings"],
+  summary: "List the current guest's bookings",
+  security: [{ bearerAuth: [] }],
+  request: { query: bookingSchema.listBookingsSchema.shape.query },
+  responses: { 200: { description: "Bookings fetched successfully" } },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/bookings/{id}",
+  tags: ["Bookings"],
+  summary: "Get a booking by id (guest, host, or admin)",
+  security: [{ bearerAuth: [] }],
+  request: { params: bookingSchema.bookingIdParamSchema.shape.params },
+  responses: {
+    200: { description: "Booking fetched successfully" },
+    403: { description: "Not authorized to view this booking" },
+    404: { description: "Booking not found" },
+  },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/bookings/{id}/cancel",
+  tags: ["Bookings"],
+  summary: "Cancel a PENDING or CONFIRMED booking",
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: bookingSchema.cancelBookingSchema.shape.params,
+    body: {
+      content: {
+        "application/json": {
+          schema: bookingSchema.cancelBookingSchema.shape.body,
+        },
+      },
+    },
+  },
+  responses: {
+    200: { description: "Booking cancelled successfully" },
+    400: { description: "Booking cannot be cancelled in its current status" },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/host/bookings",
+  tags: ["Host Bookings"],
+  summary: "List bookings for the current host's properties",
+  security: [{ bearerAuth: [] }],
+  request: { query: bookingSchema.listBookingsSchema.shape.query },
+  responses: { 200: { description: "Bookings fetched successfully" } },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/host/bookings/{id}/confirm",
+  tags: ["Host Bookings"],
+  summary: "Confirm a PENDING booking request",
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: bookingSchema.confirmBookingSchema.shape.params,
+    body: {
+      content: {
+        "application/json": {
+          schema: bookingSchema.confirmBookingSchema.shape.body,
+        },
+      },
+    },
+  },
+  responses: {
+    200: { description: "Booking confirmed successfully" },
+    400: { description: "Booking is not PENDING" },
+  },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/host/bookings/{id}/reject",
+  tags: ["Host Bookings"],
+  summary: "Reject a PENDING booking request",
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: bookingSchema.rejectBookingSchema.shape.params,
+    body: {
+      content: {
+        "application/json": {
+          schema: bookingSchema.rejectBookingSchema.shape.body,
+        },
+      },
+    },
+  },
+  responses: {
+    200: { description: "Booking rejected successfully" },
+    400: { description: "Booking is not PENDING, or reason missing" },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/admin/bookings",
+  tags: ["Admin Bookings"],
+  summary: "List all bookings platform-wide (ADMIN/SUPER_ADMIN only)",
+  security: [{ bearerAuth: [] }],
+  request: { query: bookingSchema.listBookingsSchema.shape.query },
+  responses: { 200: { description: "Bookings fetched successfully" } },
 });
