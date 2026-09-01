@@ -895,6 +895,19 @@ registry.registerPath({
 });
 
 registry.registerPath({
+  method: "get",
+  path: "/admin/properties/{id}",
+  tags: ["Admin Properties"],
+  summary: "Get a property by id, any status (ADMIN/SUPER_ADMIN only)",
+  security: [{ bearerAuth: [] }],
+  request: { params: schema.propertyIdParamSchema.shape.params },
+  responses: {
+    200: { description: "Property fetched successfully" },
+    404: { description: "Property not found" },
+  },
+});
+
+registry.registerPath({
   method: "patch",
   path: "/admin/properties/{id}/status",
   tags: ["Admin Properties"],

@@ -15,6 +15,14 @@ router.get(
   controller.adminListPropertiesHandler,
 );
 
+router.get(
+  "/:id",
+  authenticate,
+  requireRole("ADMIN", "SUPER_ADMIN"),
+  validate(schema.propertyIdParamSchema),
+  controller.adminGetPropertyHandler,
+);
+
 router.patch(
   "/:id/status",
   authenticate,

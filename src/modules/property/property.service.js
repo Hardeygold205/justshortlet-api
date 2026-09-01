@@ -501,6 +501,19 @@ export const adminListProperties = async ({
   };
 };
 
+export const adminGetPropertyById = async (propertyId) => {
+  const property = await prisma.property.findUnique({
+    where: { id: propertyId },
+    include: propertyInclude,
+  });
+
+  if (!property) {
+    throw new AppError("Property not found", STATUS_CODES.NOT_FOUND);
+  }
+
+  return property;
+};
+
 export const adminUpdatePropertyStatus = async (
   propertyId,
   { status, rejectionReason },

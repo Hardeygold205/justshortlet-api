@@ -19,7 +19,7 @@
     "prisma:reset": "dotenv -e .env.local -- prisma migrate reset",
     "prisma:seed": "dotenv -e .env.local -- prisma db seed",
     "prisma:seed:admin": "dotenv -e .env -- node prisma/seed-superadmin.js",
-    "prisma:seed:amenities": "dotenv -e .env.local -- node prisma/seed-amenities.js",
+    "prisma:seed:amenities": "dotenv -e .env -- node prisma/seed-amenities.js",
     "prisma:format": "prisma format",
     "prisma:validate": "prisma validate"
   },

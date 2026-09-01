@@ -164,6 +164,16 @@ export const adminListPropertiesHandler = asyncHandler(async (req, res) => {
   );
 });
 
+export const adminGetPropertyHandler = asyncHandler(async (req, res) => {
+  const property = await propertyService.adminGetPropertyById(req.params.id);
+  return successResponse(
+    res,
+    STATUS_CODES.OK,
+    "Property fetched successfully",
+    property,
+  );
+});
+
 export const adminUpdateStatusHandler = asyncHandler(async (req, res) => {
   const property = await propertyService.adminUpdatePropertyStatus(
     req.params.id,
