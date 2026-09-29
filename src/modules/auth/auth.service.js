@@ -16,7 +16,8 @@ import {
   addTokenToBlacklist,
   deleteCachedUser,
 } from "../../services/redis.service.js";
-import { sendEmailOtp, sendSmsOtp } from "../../services/termii.service.js";
+import { sendSmsOtp } from "../../services/termii.service.js";
+import { sendEmailOtp } from "../../services/mail.service.js";
 import {
   verifyGoogleToken,
   verifyAppleToken,

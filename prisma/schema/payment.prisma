@@ -16,16 +16,20 @@ model Payment {
   bookingId String @unique @map("booking_id")
 
   provider  PaymentProvider
-  reference String          @unique // provider's transaction reference
+  reference String          @unique
   amount    Decimal         @db.Decimal(10, 2)
   currency  String          @default("NGN")
 
   status PaymentStatus @default(PENDING)
 
+  hostAmount     Decimal? @map("host_amount") @db.Decimal(10, 2)
+  platformAmount Decimal? @map("platform_amount") @db.Decimal(10, 2)
+  subaccountCode String?  @map("subaccount_code") // which host subaccount this was split to
+
   paidAt     DateTime? @map("paid_at")
   refundedAt DateTime? @map("refunded_at")
 
-  providerMetadata Json? @map("provider_metadata") // raw webhook payload for audit/debugging
+  providerMetadata Json? @map("provider_metadata")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -36,4 +40,33 @@ model Payment {
   @@index([reference])
   @@index([status])
   @@map("payments")
+}
+
+enum PayoutProvider {
+  PAYSTACK
+  FLUTTERWAVE
+}
+
+model HostPayoutInfo {
+  id       String @id @default(uuid())
+  userId   String @unique @map("user_id")
+
+  provider PayoutProvider @default(PAYSTACK) @map("provider")
+
+  bankCode      String @map("bank_code")      // provider's bank identifier (not a free-text bank name)
+  bankName      String @map("bank_name")      // human-readable, for display
+  accountNumber String @map("account_number")
+  accountName   String @map("account_name")   // returned by provider's resolve/verify call — never host-typed
+
+  subaccountCode String? @unique @map("subaccount_code") // Paystack subaccount_code / Flutterwave subaccount id
+  percentageCharge Decimal @default(90) @map("percentage_charge") @db.Decimal(5, 2) // % host receives; rest is platform commission
+
+  isVerified Boolean @default(false) @map("is_verified") // true once subaccount creation succeeds
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("host_payout_info")
 }

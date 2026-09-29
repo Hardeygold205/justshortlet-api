@@ -5,5 +5,6 @@ export default defineConfig({
   schema: "prisma/schema",
   datasource: {
     url: ENV.POSTGRES_DATABASE_URL,
+    directUrl: ENV.POSTGRES_DIRECT_URL,
   },
 });

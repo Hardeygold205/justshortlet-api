@@ -35,6 +35,8 @@ model User {
   profile    Profile?
   uploads    Upload[]
 
+  payoutInfo HostPayoutInfo?
+
   properties Property[] @relation("HostProperties")
   bookings   Booking[]  @relation("UserBookings")
   reviews    Review[]   @relation("UserReviews")
